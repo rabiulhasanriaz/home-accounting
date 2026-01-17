@@ -48,9 +48,10 @@ class AccountController extends Controller
     public function purposeAdd(Request $request)
     {
         $purpose = new Purpose();
-        $purpose->name = $request->purpose;
+        $purpose->name = $request->name;
         $purpose->date = $request->purposeDate;
-        $request->amount = $request->purposeAmount;
+        $purpose->amount = $request->purposeAmount;
+        $purpose->remarks = $request->purposeRemarks;
         $purpose->save();
         return redirect()->back()->with('success','Purpose Added Successfully');
     }

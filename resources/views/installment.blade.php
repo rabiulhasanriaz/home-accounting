@@ -92,6 +92,10 @@
                             <label for="exampleInputAmount">Amount</label>
                             <input type="number" step="0.01" class="form-control" name="purposeAmount" id="exampleInputAmount" placeholder="Amount" required>
                         </div>
+                        <div class="form-group">
+                            <label for="exampleInputAmount">Remarks</label>
+                            <input type="text" class="form-control" name="purposeRemarks" id="exampleInputAmount" placeholder="Remarks" required>
+                        </div>
                         <button type="submit" class="btn btn-primary">Submit</button>
                     </form>
                 </div>
