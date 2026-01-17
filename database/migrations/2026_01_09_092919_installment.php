@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('installment', function (Blueprint $table) {
             $table->id();
-            $table->string('purpose');
+            $table->smallInteger('paidBy');
+            $table->smallInteger('purpose');
             $table->date('date');
             $table->decimal('amount', 10, 2);
             $table->string('remarks')->nullable();

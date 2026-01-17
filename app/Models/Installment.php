@@ -10,5 +10,5 @@ class Installment extends Model
     public $primaryKey = 'id';
     public $incrementing = true;
 
-    protected $fillable = ['purpose', 'date', 'amount', 'remarks'];
+    protected $fillable = ['paidBy', 'purpose', 'date', 'amount', 'remarks'];
 }

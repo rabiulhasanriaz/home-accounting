@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Account;
+use App\Models\Installment;
 use App\Models\Purpose;
 use Illuminate\Http\Request;
 
@@ -42,7 +43,12 @@ class AccountController extends Controller
 
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
         $daysLeft = $daysInMonth - $day;
-        return view('installment',compact('daysLeft'));
+
+        $purposes = Purpose::all();
+
+        $installments = Installment::groupBy('');
+
+        return view('installment',compact('daysLeft','purposes'));
     }
 
     public function purposeAdd(Request $request)
@@ -58,7 +64,19 @@ class AccountController extends Controller
 
     public function purposeShow()
     {
-        $purpose = Purpose::all();
-        return view('installment',compact('purpose'));
+        $purposes = Purpose::all();
+        return view('installment',compact('purposes'));
+    }
+
+    public function installmentStore(Request $request)
+    {
+        $data = new Installment();
+        $data->paidBy = $request->spender;
+        $data->purpose = $request->purpose;
+        $data->date = $request->date;
+        $data->amount = $request->amount;
+        $data->remarks = $request->remarks;
+        $data->save();
+        return redirect()->back()->with('success','Installment Added Successfully');
     }
 }

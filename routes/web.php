@@ -8,3 +8,4 @@ Route::post('/store', [AccountController::class, 'store'])->name('store');
 Route::get('/installment',[AccountController::class,'installment'])->name('installment');
 
 Route::post('/purpose-store',[AccountController::class,'purposeAdd'])->name('purposeStore');
+Route::post('/installment-store',[AccountController::class,'installmentStore'])->name('installmentStore');

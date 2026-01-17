@@ -36,12 +36,12 @@
             {{ session()->get('success') }}
         </div>
     @endif
-    <form action="{{ route('store')  }}" method="post">
+    <form action="{{ route('installmentStore')  }}" method="post">
         @csrf
         <div class="form-row">
             <div class="col">
                 <select class="form-control" name="spender">
-                    <option value="0">Select User</option>
+                    <option value="0">Paid By</option>
                     <option value="1">Riaz</option>
                     <option value="2">Tonni</option>
                 </select>
@@ -49,9 +49,11 @@
             <div class="col">
                 <select class="form-control" name="purpose">
                     <option value="0">Select Purpose</option>
-                    <option value="1">Self</option>
-                    <option value="2">Family Maintenance</option>
-                    <option value="3">Other</option>
+                    @foreach($purposes as $purpose)
+                        <option value="{{ $purpose->id }}">
+                            {{ $purpose->name }}
+                        </option>
+                    @endforeach
                 </select>
             </div>
             <div class="col">
