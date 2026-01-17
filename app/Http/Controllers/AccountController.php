@@ -55,4 +55,10 @@ class AccountController extends Controller
         $purpose->save();
         return redirect()->back()->with('success','Purpose Added Successfully');
     }
+
+    public function purposeShow()
+    {
+        $purpose = Purpose::all();
+        return view('installment',compact('purpose'));
+    }
 }

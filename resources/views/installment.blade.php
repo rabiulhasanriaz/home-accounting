@@ -12,8 +12,16 @@
     <h1>Account</h1>
     <div class="card text-center">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <a href="{{ route('index') }}"><span>Monthly Expenses</span></a>
-            <a href="{{ route('installment') }}"><span>Installments</span></a>
+            <a href="{{ route('index') }}">
+                <button class="btn btn-info">
+                    <span>Monthly Expenses</span>
+                </button>
+            </a>
+            <a href="{{ route('installment') }}">
+                <button class="btn btn-info">
+                    <span>Installments</span>
+                </button>
+            </a>
             <span class="text-bold txt"></span>
         </div>
         <div class="card-body">
