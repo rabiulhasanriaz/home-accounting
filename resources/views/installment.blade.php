@@ -126,16 +126,38 @@
                 <th>Date</th>
                 <th>Remarks</th>
                 <th>Entry date</th>
-                <th style="text-align: right;">Amount</th>
+                <th style="text-align: right;">Paid</th>
+                <th style="text-align: right;">Due</th>
+                <th style="text-align: right;">Total</th>
             </tr>
             </thead>
             <tbody>
-
-
+            @foreach($installments as $installment)
+                <tr>
+                    <td>
+                        @if($installment->paidBy == 1)
+                            Riaz
+                        @else
+                            Tonni
+                        @endif
+                    </td>
+                    <td>{{ $installment->purposeRel?->name }}</td>
+                    <td>{{ $installment->date }}</td>
+                    <td>{{ $installment->remarks }}</td>
+                    <td>{{ $installment->created_at }}</td>
+                    <td style="text-align: right;">{{ number_format($installment->amount,2) }}</td>
+                    <td style="text-align: right;">
+                        {{ number_format($installment->amount - $installment->purposeRel->amount,2) }}
+                    </td>
+                    <td style="text-align: right;">
+                        {{ number_format($installment->purposeRel->amount,2) }}
+                    </td>
+                </tr>
+            @endforeach
             </tbody>
             <tfoot>
             <tr>
-                <th colspan="4" style="text-align: right; ">Riaz:  €</th>
+                <th colspan="6" style="text-align: right; ">Riaz:  €</th>
                 <th style="text-align: right; ">Tonni: €</th>
                 <th style="text-align: right">Total:  €</th>
             </tr>

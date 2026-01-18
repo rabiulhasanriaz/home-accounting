@@ -46,9 +46,10 @@ class AccountController extends Controller
 
         $purposes = Purpose::all();
 
-        $installments = Installment::groupBy('');
+        $installments = Installment::with('purposeRel')->get();
+//        dd($installments);
 
-        return view('installment',compact('daysLeft','purposes'));
+        return view('installment',compact('daysLeft','purposes','installments'));
     }
 
     public function purposeAdd(Request $request)

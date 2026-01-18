@@ -11,4 +11,9 @@ class Installment extends Model
     public $incrementing = true;
 
     protected $fillable = ['paidBy', 'purpose', 'date', 'amount', 'remarks'];
+
+    public function purposeRel()
+    {
+        return $this->belongsTo(Purpose::class,'purpose','id');
+    }
 }
