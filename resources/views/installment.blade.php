@@ -50,8 +50,16 @@
                 <select class="form-control" name="purpose">
                     <option value="0">Select Purpose</option>
                     @foreach($purposes as $purpose)
-                        <option value="{{ $purpose->id }}">
+                        @php
+                            $paid = $purpose->installment_rel_sum_amount ?? 0;
+                            $isPaid = $paid >= $purpose->amount;
+                        @endphp
+
+                        <option value="{{ $purpose->id }}" {{ $isPaid ? 'disabled' : '' }}>
                             {{ $purpose->name }}
+                            (Total: {{ number_format($purpose->amount,2) }},
+                            Paid: {{ number_format($paid,2) }})
+                            {{ $isPaid ? ' — PAID' : '' }}
                         </option>
                     @endforeach
                 </select>

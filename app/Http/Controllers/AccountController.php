@@ -44,7 +44,9 @@ class AccountController extends Controller
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
         $daysLeft = $daysInMonth - $day;
 
-        $purposes = Purpose::all();
+//        $purposes = Purpose::with('installmentRel')->get();
+        $purposes = Purpose::withSum('installmentRel', 'amount')->get();
+//        dd($purposes);
 
         $installments = Installment::with('purposeRel')->get();
 //        dd($installments);

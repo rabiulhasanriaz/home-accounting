@@ -11,4 +11,9 @@ class Purpose extends Model
     public $incrementing = true;
 
     protected $fillable = ['name','date','amount','remarks'];
+
+    public function installmentRel()
+    {
+        return $this->hasMany(Installment::class,'purpose','id');
+    }
 }
