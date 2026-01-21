@@ -9,3 +9,5 @@ Route::get('/installment',[AccountController::class,'installment'])->name('insta
 
 Route::post('/purpose-store',[AccountController::class,'purposeAdd'])->name('purposeStore');
 Route::post('/installment-store',[AccountController::class,'installmentStore'])->name('installmentStore');
+
+Route::get('/salary',[AccountController::class,'salary'])->name('salary');

@@ -48,7 +48,10 @@ class AccountController extends Controller
         $purposes = Purpose::withSum('installmentRel', 'amount')->get();
 //        dd($purposes);
 
-        $installments = Installment::with('purposeRel')->get();
+        $installments = Installment::with('purposeRel')
+            ->orderBy('purpose')
+            ->get()
+            ->groupBy('purpose');
 //        dd($installments);
 
         return view('installment',compact('daysLeft','purposes','installments'));
@@ -81,5 +84,16 @@ class AccountController extends Controller
         $data->remarks = $request->remarks;
         $data->save();
         return redirect()->back()->with('success','Installment Added Successfully');
+    }
+
+    public function salary()
+    {
+        $day = date('j');
+        $month = date('n');
+        $year = date('Y');
+
+        $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+        $daysLeft = $daysInMonth - $day;
+        return view('salary',compact('daysLeft'));
     }
 }

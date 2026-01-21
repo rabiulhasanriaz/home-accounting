@@ -10,6 +10,11 @@
                 <span>Installments</span>
             </button>
         </a>
+        <a href="{{ route('salary') }}">
+            <button class="btn btn-info">
+                <span>Salary</span>
+            </button>
+        </a>
         <span class="text-bold txt"></span>
     </div>
     <div class="card-body">

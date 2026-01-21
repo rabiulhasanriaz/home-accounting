@@ -22,7 +22,7 @@
                     <span>Installments</span>
                 </button>
             </a>
-            <a href="{{ route('installment') }}">
+            <a href="{{ route('salary') }}">
                 <button class="btn btn-info">
                     <span>Salary</span>
                 </button>
@@ -146,34 +146,58 @@
             </tr>
             </thead>
             <tbody>
-            @foreach($installments as $installment)
+            @php
+                $riazTotal = 0;
+                $tonniTotal = 0;
+                $subtotal = 0;
+                $bothDue = 0;
+                $totalDue = 0;
+            @endphp
+            @foreach($installments as $purposeId => $items)
+                @php
+//                    dd($items->first()->paidBy);
+
+                    $purpose = $items->first()->purposeRel;
+                    $totalPaid = $items->sum('amount');
+                    $total = $purpose?->amount ?? 0;
+                    $due = $total - $totalPaid;
+                    $paidByNames = $items
+                                ->pluck('paidBy')
+                                ->unique()
+                                ->map(fn ($p) => $p == 1 ? 'Riaz' : 'Tonni')
+                                ->implode(', ');
+                    $last = $items->sortByDesc('date')->first();
+
+                    $riazPaid  = $items->where('paidBy', 1)->sum('amount');
+                    $tonniPaid = $items->where('paidBy', 2)->sum('amount');
+
+                    $riazTotal += $riazPaid;
+                    $tonniTotal += $tonniPaid;
+                    $subtotal += $total;
+                    $bothDue = $riazTotal + $tonniTotal;
+                    $totalDue = $subtotal - $bothDue;
+                @endphp
+
                 <tr>
-                    <td>
-                        @if($installment->paidBy == 1)
-                            Riaz
-                        @else
-                            Tonni
-                        @endif
-                    </td>
-                    <td>{{ $installment->purposeRel?->name }}</td>
-                    <td>{{ $installment->date }}</td>
-                    <td>{{ $installment->remarks }}</td>
-                    <td>{{ $installment->created_at }}</td>
-                    <td style="text-align: right;">{{ number_format($installment->amount,2) }}</td>
-                    <td style="text-align: right;">
-                        {{ number_format($installment->amount - $installment->purposeRel->amount,2) }}
-                    </td>
-                    <td style="text-align: right;">
-                        {{ number_format($installment->purposeRel->amount,2) }}
-                    </td>
+                    <td>{{ $paidByNames }}</td>
+                    <td>{{ $purpose?->name ?? 'Unknown' }}</td>
+                    <td>{{ $last?->date ?? '-' }}</td>
+                    <td>{{ $last?->remarks ?? '-' }}</td>
+                    <td>{{ $last?->created_at ?? '-' }}</td>
+                    <td style="text-align:right;">{{ number_format($totalPaid, 2) }}</td>
+                    <td style="text-align:right;">{{ number_format($due, 2) }}</td>
+                    <td style="text-align:right;">{{ number_format($total, 2) }}</td>
                 </tr>
             @endforeach
             </tbody>
+
+
+
             <tfoot>
             <tr>
-                <th colspan="6" style="text-align: right; ">Riaz:  €</th>
-                <th style="text-align: right; ">Tonni: €</th>
-                <th style="text-align: right">Total:  €</th>
+                <th colspan="6" style="text-align: right; ">Riaz:  {{ number_format($riazTotal,2) }}€</th>
+                <th style="text-align: right; ">Tonni: {{ number_format($tonniTotal,2) }}€</th>
+                <th style="text-align: right">Total:  {{ number_format($subtotal,2) }}€ Due: {{ number_format($totalDue,2) }}€</th>
             </tr>
             </tfoot>
         </table>
