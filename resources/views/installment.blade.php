@@ -22,13 +22,19 @@
                     <span>Installments</span>
                 </button>
             </a>
-            <span class="text-bold txt"></span>
+            <a href="{{ route('installment') }}">
+                <button class="btn btn-info">
+                    <span>Salary</span>
+                </button>
+            </a>
+
         </div>
         <div class="card-body">
             <h5 class="card-title">Month of {{ date("F, Y") }}</h5>
         </div>
         <div class="card-footer text-muted">
             {{ $daysLeft }} Days to go
+            (<span class="text-bold txt text-left"></span>)
         </div>
     </div>
     @if(session()->has('success'))
