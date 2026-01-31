@@ -178,7 +178,7 @@
                     $totalDue = $subtotal - $bothDue;
                 @endphp
 
-                <tr>
+                <tr style="background-color: {{ $due > 0 ? 'red' : 'green' }}">
                     <td>{{ $paidByNames }}</td>
                     <td>{{ $purpose?->name ?? 'Unknown' }}</td>
                     <td>{{ $last?->date ?? '-' }}</td>
