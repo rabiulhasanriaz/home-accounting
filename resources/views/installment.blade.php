@@ -13,8 +13,20 @@
     <div class="card text-center">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div class="dropdown show">
-                <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Menu
+
+                @php
+                    $current = Route::currentRouteName();
+                @endphp
+
+                <a class="btn btn-secondary dropdown-toggle" href="#" role="button"
+                   id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    @switch($current)
+                        @case('index') Monthly @break
+                        @case('installment') Installments @break
+                        @case('history') History @break
+                        @case('salary') Salary @break
+                        @default Menu
+                    @endswitch
                 </a>
 
                 <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
@@ -24,7 +36,6 @@
                     <a class="dropdown-item" href="{{ route('salary') }}">Salary</a>
                 </div>
             </div>
-
         </div>
         <div class="card-body">
             <h5 class="card-title">Month of {{ date("F, Y") }}</h5>
