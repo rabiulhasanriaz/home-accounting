@@ -12,21 +12,18 @@
     <h1>Account</h1>
     <div class="card text-center">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <a href="{{ route('index') }}">
-                <button class="btn btn-info">
-                    <span>Monthly Expenses</span>
-                </button>
-            </a>
-            <a href="{{ route('installment') }}">
-                <button class="btn btn-info">
-                    <span>Installments</span>
-                </button>
-            </a>
-            <a href="{{ route('salary') }}">
-                <button class="btn btn-info">
-                    <span>Salary</span>
-                </button>
-            </a>
+            <div class="dropdown show">
+                <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Menu
+                </a>
+
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                    <a class="dropdown-item" href="{{ route('index') }}">Monthly</a>
+                    <a class="dropdown-item" href="{{ route('installment') }}">Installments</a>
+                    <a class="dropdown-item" href="{{ route('history') }}">History</a>
+                    <a class="dropdown-item" href="{{ route('salary') }}">Salary</a>
+                </div>
+            </div>
 
         </div>
         <div class="card-body">

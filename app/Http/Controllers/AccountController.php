@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Account;
 use App\Models\Installment;
 use App\Models\Purpose;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AccountController extends Controller
 {
@@ -18,7 +20,10 @@ class AccountController extends Controller
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
         $daysLeft = $daysInMonth - $day;
 
-        $data = Account::orderBy('amount', 'asc')->get();
+        $data = Account::whereMonth('date', $month)
+            ->whereYear('date', $year)
+            ->orderBy('amount', 'asc')
+            ->get();
 //        dd($data);
         return view('account',compact('data','daysLeft'));
     }
@@ -95,5 +100,35 @@ class AccountController extends Controller
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
         $daysLeft = $daysInMonth - $day;
         return view('salary',compact('daysLeft'));
+    }
+
+    public function history()
+    {
+        $year = now()->year;
+
+        // 1) get totals per month that exist in DB
+        $rows = Account::selectRaw('MONTH(date) as month, SUM(amount) as total')
+            ->whereYear('date', $year)
+            ->groupBy(DB::raw('MONTH(date)'))
+            ->orderBy(DB::raw('MONTH(date)'))
+            ->get()
+            ->keyBy('month'); // easy lookup by month number
+
+        // 2) build a complete Jan..Dec array, filling missing months with 0
+        $monthlyTotals = collect(range(1, 12))->map(function ($m) use ($rows, $year) {
+            return [
+                'month_num'  => $m,
+                'month_name' => Carbon::createFromDate($year, $m, 1)->format('F'),
+                'total'      => (float) ($rows[$m]->total ?? 0),
+            ];
+        });
+
+        // (your existing "days left" logic if you still need it)
+        $day = date('j');
+        $month = date('n');
+        $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+        $daysLeft = $daysInMonth - $day;
+
+        return view('history', compact('monthlyTotals', 'daysLeft', 'year'));
     }
 }
