@@ -40,6 +40,11 @@ class AccountController extends Controller
         return redirect()->back()->with('success','Account Added Successfully');
     }
 
+    public function delete($id){
+        Account::where('id',$id)->delete();
+        return redirect()->back()->with('danger','Account Deleted Successfully');
+    }
+
     public function installment()
     {
         $day = date('j');

@@ -50,6 +50,11 @@
         {{ session()->get('success') }}
     </div>
 @endif
+    @if(session()->has('danger'))
+        <div class="alert alert-danger">
+            {{ session()->get('danger') }}
+        </div>
+    @endif
 <form action="{{ route('store')  }}" method="post">
     @csrf
     <div class="form-row">
@@ -94,6 +99,7 @@
             <th>Remarks</th>
             <th>Entry date</th>
             <th style="text-align: right;">Amount</th>
+            <th>Action</th>
         </tr>
         </thead>
         <tbody>
@@ -131,6 +137,12 @@
                 @endphp
                 <td>{{ $date->format('D, M j, Y • h:i A') }}</td>
                 <td style="text-align: right;"><strong>{{ $d->amount }} €</strong></td>
+                <td style="text-align: right">
+                    <a href="{{ route('delete', $d->id) }}"
+                       onclick="return confirm('Are you sure you want to delete this item?');" class="btn btn-danger">
+                        Delete
+                    </a>
+                </td>
             </tr>
         @endforeach
         </tbody>
@@ -139,6 +151,7 @@
             <th colspan="4" style="text-align: right; color: {{ $riaz > $tonni ? 'red' : 'green' }}">Riaz: {{ number_format($riaz,2) }} €</th>
             <th style="text-align: right; color: {{ $riaz < $tonni ? 'red' : 'green' }}">Tonni: {{ number_format($tonni,2) }} €</th>
             <th style="text-align: right">Total: {{ number_format($total,2)  }} €</th>
+            <th></th>
         </tr>
         </tfoot>
     </table>
