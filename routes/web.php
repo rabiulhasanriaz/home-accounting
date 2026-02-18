@@ -13,3 +13,4 @@ Route::post('/installment-store',[AccountController::class,'installmentStore'])-
 
 Route::get('/salary',[AccountController::class,'salary'])->name('salary');
 Route::get('/history',[AccountController::class,'history'])->name('history');
+Route::get('/utility',[AccountController::class,'utility'])->name('utility');

@@ -136,4 +136,13 @@ class AccountController extends Controller
 
         return view('history', compact('monthlyTotals', 'daysLeft', 'year'));
     }
+
+    public function utility(){
+        $year = now()->year;
+        $day = date('j');
+        $month = date('n');
+        $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+        $daysLeft = $daysInMonth - $day;
+        return view('utilities',compact('daysLeft'));
+    }
 }
