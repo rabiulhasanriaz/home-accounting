@@ -106,6 +106,7 @@
                 <th style="text-align: right;">Paid</th>
                 <th style="text-align: right;">Due</th>
                 <th style="text-align: right;">Total</th>
+                <th>Action</th>
             </tr>
             </thead>
             <tbody>
@@ -118,7 +119,7 @@
             @endphp
             @foreach($installments as $purposeId => $items)
                 @php
-//                    dd($items->first()->paidBy);
+//                    dd($items->first()->id);
 
                     $purpose = $items->first()->purposeRel;
                     $totalPaid = $items->sum('amount');
@@ -150,6 +151,15 @@
                     <td style="text-align:right;">{{ number_format($totalPaid, 2) }}</td>
                     <td style="text-align:right;">{{ number_format($due, 2) }}</td>
                     <td style="text-align:right;">{{ number_format($total, 2) }}</td>
+                    <td>
+                        <button
+                            type="button"
+                            class="btn btn-primary btn-update"
+                            data-id="{{ $items->first()->id }}"
+                        >
+                            Update
+                        </button>
+                    </td>
                 </tr>
             @endforeach
             </tbody>
@@ -165,4 +175,97 @@
             </tfoot>
         </table>
     </div>
+
+    <div class="modal fade" id="reason_edit_modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="reasonEditForm">
+                    @csrf
+                    <div class="modal-header">
+                        <h4 class="modal-title">Update Installment</h4>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <input type="hidden" id="edit_id" name="id">
+
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" class="form-control" id="edit_date" name="date">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Amount</label>
+                            <input type="number" step="0.01" class="form-control" id="edit_amount" name="amount">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Remarks</label>
+                            <input type="text" class="form-control" id="edit_remarks" name="remarks">
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" id="btnSave">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endsection
+@section('custom_script')
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            // 1) CLICK UPDATE BUTTON -> load data by ajax -> open modal
+            $(document).on('click', '.btn-update', function () {
+                let id = $(this).data('id');
+
+                $.ajax({
+                    type: "GET",
+                    url: "{{ url('/installment') }}/" + id,
+                    success: function (res) {
+                        $('#edit_id').val(res.id);
+                        $('#edit_date').val(res.date);
+                        $('#edit_amount').val(res.amount);
+                        $('#edit_remarks').val(res.remarks ?? '');
+
+                        $('#reason_edit_modal').modal('show');
+                    },
+                    error: function () {
+                        alert("Failed to load data");
+                    }
+                });
+            });
+
+            // 2) SUBMIT MODAL FORM -> update by ajax
+            $('#reasonEditForm').on('submit', function(e){
+                e.preventDefault();
+
+                let id = $('#edit_id').val();
+
+                $.ajax({
+                    type: "POST",
+                    url: "{{ url('/installment') }}/" + id,
+                    data: $(this).serialize(),
+                    success: function(res){
+                        if(res.success){
+                            $('#reason_edit_modal').modal('hide');
+                            // optional: reload page or update the row in table
+                            location.reload();
+                        }
+                    },
+                    error: function(xhr){
+                        // optional: show validation errors
+                        console.log(xhr.responseText);
+                        alert("Update failed");
+                    }
+                });
+            });
+
+        });
+    </script>
 @endsection

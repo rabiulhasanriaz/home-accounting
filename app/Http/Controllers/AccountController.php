@@ -67,6 +67,43 @@ class AccountController extends Controller
         return view('installment',compact('daysLeft','purposes','installments'));
     }
 
+    public function editAjax($id)
+    {
+        $installment = Installment::findOrFail($id);
+
+        return response()->json([
+            'id' => $installment->id,
+            'date' => $installment->date,
+            'amount' => $installment->amount,
+            'remarks' => $installment->remarks,
+            'paidBy' => $installment->paidBy,
+            'purpose_id' => $installment->purpose_id,
+        ]);
+    }
+
+    public function updateAjax(Request $request, $id)
+    {
+        $request->validate([
+            'date' => 'required|date',
+            'amount' => 'required|numeric|min:0',
+            'remarks' => 'nullable|string|max:255',
+        ]);
+
+        $installment = Installment::findOrFail($id);
+
+        $installment->update([
+            'date' => $request->date,
+            'amount' => $request->amount,
+            'remarks' => $request->remarks,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Updated successfully',
+            'data' => $installment
+        ]);
+    }
+
     public function purposeAdd(Request $request)
     {
         $purpose = new Purpose();
