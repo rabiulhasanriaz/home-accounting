@@ -11,9 +11,17 @@
                         </div>
 
                         <div class="card-body">
-                            <h5 class="card-title">
-                                Total: {{ number_format($m['total'], 2) }} €
-                            </h5>
+                            <h5>Total: {{ number_format($m['total'], 2) }} €</h5>
+
+                            @if(!empty($m['spenders']))
+                                <ul class="mb-0 ps-3">
+                                    @foreach($m['spenders'] as $spender => $amount)
+                                        <li>{{  $spender == 1 ? 'Riaz' : 'Tonni' }} : {{ number_format($amount, 2) }} €</li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <small>No data</small>
+                            @endif
                         </div>
                     </div>
                 </div>

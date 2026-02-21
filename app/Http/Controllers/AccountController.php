@@ -148,24 +148,26 @@ class AccountController extends Controller
     {
         $year = now()->year;
 
-        // 1) get totals per month that exist in DB
-        $rows = Account::selectRaw('MONTH(date) as month, SUM(amount) as total')
+        $rows = Account::selectRaw('MONTH(date) as month, spender, SUM(amount) as total')
             ->whereYear('date', $year)
-            ->groupBy(DB::raw('MONTH(date)'))
+            ->groupBy(DB::raw('MONTH(date)'), 'spender')
             ->orderBy(DB::raw('MONTH(date)'))
-            ->get()
-            ->keyBy('month'); // easy lookup by month number
+            ->get();
 
-        // 2) build a complete Jan..Dec array, filling missing months with 0
         $monthlyTotals = collect(range(1, 12))->map(function ($m) use ($rows, $year) {
+
+            $monthRows = $rows->where('month', $m);
+
             return [
-                'month_num'  => $m,
-                'month_name' => Carbon::createFromDate($year, $m, 1)->format('F'),
-                'total'      => (float) ($rows[$m]->total ?? 0),
+                'month_num'   => $m,
+                'month_name'  => Carbon::createFromDate($year, $m, 1)->format('F'),
+
+                'total'       => (float) $monthRows->sum('total'),
+
+                'spenders'    => $monthRows->pluck('total', 'spender')->toArray(),
             ];
         });
 
-        // (your existing "days left" logic if you still need it)
         $day = date('j');
         $month = date('n');
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
