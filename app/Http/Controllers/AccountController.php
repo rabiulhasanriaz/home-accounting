@@ -176,6 +176,13 @@ class AccountController extends Controller
         return view('history', compact('monthlyTotals', 'daysLeft', 'year'));
     }
 
+    public function spenderDetails($id){
+        $details = Account::where('spender',$id)->get();
+        return response()->json([
+            'data' => $details
+        ]);
+    }
+
     public function utility(){
         $year = now()->year;
         $day = date('j');

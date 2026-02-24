@@ -15,4 +15,5 @@ Route::post('/installment/{id}', [AccountController::class, 'updateAjax'])->name
 
 Route::get('/salary',[AccountController::class,'salary'])->name('salary');
 Route::get('/history',[AccountController::class,'history'])->name('history');
+Route::get('/spender-details/{id}',[AccountController::class,'spenderDetails'])->name('spenderDetails');
 Route::get('/utility',[AccountController::class,'utility'])->name('utility');
