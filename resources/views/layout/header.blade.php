@@ -21,9 +21,9 @@
             <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
                 <a class="dropdown-item" href="{{ route('index') }}">Monthly</a>
                 <a class="dropdown-item" href="{{ route('installment') }}">Installments</a>
-                <a class="dropdown-item" href="{{ route('history') }}">History</a>
                 <a class="dropdown-item" href="{{ route('salary') }}">Salary</a>
                 <a class="dropdown-item" href="{{ route('utility') }}">Utility</a>
+                <a class="dropdown-item" href="{{ route('history') }}">History</a>
             </div>
         </div>
     </div>
