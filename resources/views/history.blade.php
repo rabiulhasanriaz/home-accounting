@@ -60,6 +60,18 @@
                                     @endforeach
                                 </ul>
                             @endif
+                            @if(!empty($m['installments_paid_by']))
+                                <hr>
+                                <div class="mt-2">
+                                    <strong>Installments:</strong> {{ number_format($m['installments_total'], 2) }} €
+                                </div>
+                                <small><b>Installments by Payer</b></small>
+                                <ul class="mb-0 ps-3">
+                                    @foreach($m['installments_paid_by'] as $paidBy => $amount)
+                                        <li>{{ $paidBy == 1 ? 'Riaz' : 'Tonni' }} : {{ number_format($amount, 2) }} €</li>
+                                    @endforeach
+                                </ul>
+                            @endif
 
                         </div>
                     </div>

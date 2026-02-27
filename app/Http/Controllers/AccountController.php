@@ -222,35 +222,65 @@ class AccountController extends Controller
             ];
         })->keyBy('month_num');
 
+        $installmentsRows = Installment::selectRaw('MONTH(date) as month, paidBy, SUM(amount) as total')
+            ->whereYear('date', $year)
+            ->groupBy(DB::raw('MONTH(date)'), 'paidBy')
+            ->get();
+        $monthlyInstallments = collect(range(1, 12))->map(function ($m) use ($installmentsRows, $year) {
+            $monthRows = $installmentsRows->where('month', $m);
+
+            return [
+                'month_num'  => $m,
+                'month_name' => Carbon::createFromDate($year, $m, 1)->format('F'),
+                'total'      => (float) $monthRows->sum('total'),
+                'paid_by'    => $monthRows->pluck('total', 'paidBy')->toArray(),
+            ];
+        })->keyBy('month_num');
 
 // --- Merge into one structure per month ---
-        $months = collect(range(1, 12))->map(function ($m) use ($monthlyTotals, $monthlyTotalUtilities, $monthlySalaries, $year) {
+        $months = collect(range(1, 12))->map(function ($m) use (
+            $monthlyTotals,
+            $monthlyTotalUtilities,
+            $monthlySalaries,
+            $monthlyInstallments,
+            $year
+        ) {
             $acc = $monthlyTotals->get($m, ['total' => 0, 'spenders' => []]);
             $uti = $monthlyTotalUtilities->get($m, ['total' => 0, 'spenders' => []]);
             $sal = $monthlySalaries->get($m, ['total' => 0, 'users' => []]);
+            $ins = $monthlyInstallments->get($m, ['total' => 0, 'paid_by' => []]);
 
-            $grand = (float) ($acc['total'] ?? 0) + (float) ($uti['total'] ?? 0);
+            // expenses
+            $accountsTotal     = (float) ($acc['total'] ?? 0);
+            $utilitiesTotal    = (float) ($uti['total'] ?? 0);
+            $installmentsTotal = (float) ($ins['total'] ?? 0);
+
+            $grand = $accountsTotal + $utilitiesTotal + $installmentsTotal;
+
+            // income
             $salary = (float) ($sal['total'] ?? 0);
-            $difference = $salary - $grand; // salary minus expenses
 
             return [
                 'month_num'  => $m,
                 'month_name' => Carbon::createFromDate($year, $m, 1)->format('F'),
 
-                // expenses
-                'accounts_total'  => (float) ($acc['total'] ?? 0),
-                'utilities_total' => (float) ($uti['total'] ?? 0),
-                'grand_total'     => $grand,
+                // totals
+                'accounts_total'     => $accountsTotal,
+                'utilities_total'    => $utilitiesTotal,
+                'installments_total' => $installmentsTotal,
+                'grand_total'        => $grand,
 
-                'accounts_spenders'  => $acc['spenders'] ?? [],
-                'utilities_spenders' => $uti['spenders'] ?? [],
+                // breakdowns
+                'accounts_spenders'     => $acc['spenders'] ?? [],
+                'utilities_spenders'    => $uti['spenders'] ?? [],
+                'installments_paid_by'  => $ins['paid_by'] ?? [],
 
                 // salary
                 'salary_total' => $salary,
                 'salary_users' => $sal['users'] ?? [],
 
-                // diff
-                'difference' => $difference,
+                // diff (salary - expenses)
+                'difference' => $salary - $grand,
             ];
         });
 
