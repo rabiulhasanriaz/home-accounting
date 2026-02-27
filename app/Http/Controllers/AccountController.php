@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Account;
 use App\Models\Installment;
 use App\Models\Purpose;
+use App\Models\Utility;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -189,6 +190,22 @@ class AccountController extends Controller
         $month = date('n');
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
         $daysLeft = $daysInMonth - $day;
-        return view('utilities',compact('daysLeft'));
+
+        $data = Utility::whereMonth('date', $month)
+            ->whereYear('date', $year)
+            ->orderBy('amount', 'asc')
+            ->get();
+        return view('utilities',compact('daysLeft','data'));
+    }
+
+    public function utilityStore(Request $request){
+        $data = new Utility();
+        $data->spender = $request->spender;
+        $data->purpose = $request->purpose;
+        $data->date = $request->date;
+        $data->amount = $request->amount;
+        $data->remarks = $request->remarks;
+        $data->save();
+        return redirect()->back()->with('success','Utility Added Successfully');
     }
 }
