@@ -4,26 +4,31 @@
         <div class="row">
             @foreach($months as $m)
                 <div class="col-sm-3 mb-3">
+
+                    {{-- Option 1: color by expenses --}}
                     <div class="card text-white bg-{{ $m['grand_total'] > 1300 ? 'danger' : 'success' }}">
+
+                        {{-- Option 2: color by difference (uncomment if you prefer) --}}
+                        {{-- <div class="card text-white bg-{{ $m['difference'] < 0 ? 'danger' : 'success' }}"> --}}
+
                         <div class="card-header d-flex justify-content-between">
                             <span>{{ $m['month_name'] }}</span>
                             <span>{{ $year }}</span>
                         </div>
 
                         <div class="card-body">
-                            <h5>Grand Total: {{ number_format($m['grand_total'], 2) }} €</h5>
+                            <h5>Expenses (Grand): {{ number_format($m['grand_total'], 2) }} €</h5>
 
-                            <div class="mt-2">
-                                <strong>Accounts:</strong> {{ number_format($m['accounts_total'], 2) }} €
-                            </div>
+                            <h6 class="{{ $m['difference'] < 0 ? 'text-warning' : 'text-light' }}">
+                                Difference: {{ number_format($m['difference'], 2) }} €
+                            </h6>
 
-                            <div class="mt-2">
-                                <strong>Utilities:</strong> {{ number_format($m['utilities_total'], 2) }} €
-                            </div>
 
-                            {{-- Example: show spender list (accounts) --}}
                             @if(!empty($m['accounts_spenders']))
                                 <hr>
+                                <div class="mt-2">
+                                    <strong>Accounts:</strong> {{ number_format($m['accounts_total'], 2) }} €
+                                </div>
                                 <small><b>Accounts by spender</b></small>
                                 <ul class="mb-0 ps-3">
                                     @foreach($m['accounts_spenders'] as $spender => $amount)
@@ -32,9 +37,11 @@
                                 </ul>
                             @endif
 
-                            {{-- Example: show spender list (utilities) --}}
                             @if(!empty($m['utilities_spenders']))
                                 <hr>
+                                <div class="mt-2">
+                                    <strong>Utilities:</strong> {{ number_format($m['utilities_total'], 2) }} €
+                                </div>
                                 <small><b>Utilities by spender</b></small>
                                 <ul class="mb-0 ps-3">
                                     @foreach($m['utilities_spenders'] as $spender => $amount)
@@ -42,6 +49,18 @@
                                     @endforeach
                                 </ul>
                             @endif
+
+                            @if(!empty($m['salary_users']))
+                                <hr>
+                                <h5>Salary: {{ number_format($m['salary_total'], 2) }} €</h5>
+                                <small><b>Salary by user</b></small>
+                                <ul class="mb-0 ps-3">
+                                    @foreach($m['salary_users'] as $user => $amount)
+                                        <li>{{ $user == 1 ? 'Riaz' : 'Tonni' }} : {{ number_format($amount, 2) }} €</li>
+                                    @endforeach
+                                </ul>
+                            @endif
+
                         </div>
                     </div>
                 </div>

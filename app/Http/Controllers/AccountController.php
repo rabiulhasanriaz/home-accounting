@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Account;
 use App\Models\Installment;
 use App\Models\Purpose;
+use App\Models\Salary;
 use App\Models\Utility;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -142,14 +143,31 @@ class AccountController extends Controller
 
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
         $daysLeft = $daysInMonth - $day;
-        return view('salary',compact('daysLeft'));
+
+        $salaries = Salary::whereMonth('date', $month)
+            ->whereYear('date', $year)
+            ->orderBy('amount', 'asc')
+            ->get();
+
+        return view('salary',compact('daysLeft','salaries'));
+    }
+
+    public function salaryStore(Request $request)
+    {
+        $data = new Salary();
+        $data->user = $request->user_name;
+        $data->company = $request->company_name;
+        $data->date = $request->date;
+        $data->amount = $request->amount;
+        $data->save();
+        return redirect()->back()->with('success','Salary Added Successfully');
     }
 
     public function history()
     {
         $year = now()->year;
 
-        // --- Accounts grouped ---
+// --- Accounts grouped ---
         $accountsRows = Account::selectRaw('MONTH(date) as month, spender, SUM(amount) as total')
             ->whereYear('date', $year)
             ->groupBy(DB::raw('MONTH(date)'), 'spender')
@@ -166,7 +184,8 @@ class AccountController extends Controller
             ];
         })->keyBy('month_num');
 
-        // --- Utilities grouped ---
+
+// --- Utilities grouped ---
         $utilityRows = Utility::selectRaw('MONTH(date) as month, spender, SUM(amount) as total')
             ->whereYear('date', $year)
             ->groupBy(DB::raw('MONTH(date)'), 'spender')
@@ -183,22 +202,55 @@ class AccountController extends Controller
             ];
         })->keyBy('month_num');
 
-        // --- Merge into one structure per month ---
-        $months = collect(range(1, 12))->map(function ($m) use ($monthlyTotals, $monthlyTotalUtilities, $year) {
+
+// --- Salary grouped ---
+// IMPORTANT: use Salary model/table here (NOT Utility)
+// If you don't have Salary model, use DB::table('salaries') instead.
+        $salaryRows = Salary::selectRaw('MONTH(date) as month, user, SUM(amount) as total')
+            ->whereYear('date', $year)
+            ->groupBy(DB::raw('MONTH(date)'), 'user')
+            ->get();
+
+        $monthlySalaries = collect(range(1, 12))->map(function ($m) use ($salaryRows, $year) {
+            $monthRows = $salaryRows->where('month', $m);
+
+            return [
+                'month_num'  => $m,
+                'month_name' => Carbon::createFromDate($year, $m, 1)->format('F'),
+                'total'      => (float) $monthRows->sum('total'),
+                'users'      => $monthRows->pluck('total', 'user')->toArray(),
+            ];
+        })->keyBy('month_num');
+
+
+// --- Merge into one structure per month ---
+        $months = collect(range(1, 12))->map(function ($m) use ($monthlyTotals, $monthlyTotalUtilities, $monthlySalaries, $year) {
             $acc = $monthlyTotals->get($m, ['total' => 0, 'spenders' => []]);
             $uti = $monthlyTotalUtilities->get($m, ['total' => 0, 'spenders' => []]);
+            $sal = $monthlySalaries->get($m, ['total' => 0, 'users' => []]);
+
+            $grand = (float) ($acc['total'] ?? 0) + (float) ($uti['total'] ?? 0);
+            $salary = (float) ($sal['total'] ?? 0);
+            $difference = $salary - $grand; // salary minus expenses
 
             return [
                 'month_num'  => $m,
                 'month_name' => Carbon::createFromDate($year, $m, 1)->format('F'),
 
+                // expenses
                 'accounts_total'  => (float) ($acc['total'] ?? 0),
                 'utilities_total' => (float) ($uti['total'] ?? 0),
+                'grand_total'     => $grand,
 
                 'accounts_spenders'  => $acc['spenders'] ?? [],
                 'utilities_spenders' => $uti['spenders'] ?? [],
 
-                'grand_total' => (float) ($acc['total'] ?? 0) + (float) ($uti['total'] ?? 0),
+                // salary
+                'salary_total' => $salary,
+                'salary_users' => $sal['users'] ?? [],
+
+                // diff
+                'difference' => $difference,
             ];
         });
 

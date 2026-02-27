@@ -14,7 +14,10 @@ Route::get('/installment/{id}', [AccountController::class, 'editAjax'])->name('i
 Route::post('/installment/{id}', [AccountController::class, 'updateAjax'])->name('installment.updateAjax');
 
 Route::get('/salary',[AccountController::class,'salary'])->name('salary');
+Route::post('/salary-store',[AccountController::class,'salaryStore'])->name('salaryStore');
+
 Route::get('/history',[AccountController::class,'history'])->name('history');
 Route::get('/spender-details/{id}',[AccountController::class,'spenderDetails'])->name('spenderDetails');
+
 Route::get('/utility',[AccountController::class,'utility'])->name('utility');
 Route::post('/utility-store',[AccountController::class,'utilityStore'])->name('utilityStore');
