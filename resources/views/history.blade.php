@@ -2,27 +2,45 @@
 @section('content')
     <div class="box-body bg-white">
         <div class="row">
-            @foreach($monthlyTotals as $m)
+            @foreach($months as $m)
                 <div class="col-sm-3 mb-3">
-                    <div class="card text-white bg-{{ $m['total'] > 600 ? 'danger' : 'success' }}">
+                    <div class="card text-white bg-{{ $m['grand_total'] > 1300 ? 'danger' : 'success' }}">
                         <div class="card-header d-flex justify-content-between">
                             <span>{{ $m['month_name'] }}</span>
                             <span>{{ $year }}</span>
                         </div>
 
                         <div class="card-body">
-                            <h5>Total: {{ number_format($m['total'], 2) }} €</h5>
+                            <h5>Grand Total: {{ number_format($m['grand_total'], 2) }} €</h5>
 
-                            @if(!empty($m['spenders']))
+                            <div class="mt-2">
+                                <strong>Accounts:</strong> {{ number_format($m['accounts_total'], 2) }} €
+                            </div>
+
+                            <div class="mt-2">
+                                <strong>Utilities:</strong> {{ number_format($m['utilities_total'], 2) }} €
+                            </div>
+
+                            {{-- Example: show spender list (accounts) --}}
+                            @if(!empty($m['accounts_spenders']))
+                                <hr>
+                                <small><b>Accounts by spender</b></small>
                                 <ul class="mb-0 ps-3">
-                                    @foreach($m['spenders'] as $spender => $amount)
-                                        <a href="" class="spender_details" data-id="{{ $spender }}">
-                                            <li>{{  $spender == 1 ? 'Riaz' : 'Tonni' }} : {{ number_format($amount, 2) }} €</li>
-                                        </a>
+                                    @foreach($m['accounts_spenders'] as $spender => $amount)
+                                        <li>{{ $spender == 1 ? 'Riaz' : 'Tonni' }} : {{ number_format($amount, 2) }} €</li>
                                     @endforeach
                                 </ul>
-                            @else
-                                <small>No data</small>
+                            @endif
+
+                            {{-- Example: show spender list (utilities) --}}
+                            @if(!empty($m['utilities_spenders']))
+                                <hr>
+                                <small><b>Utilities by spender</b></small>
+                                <ul class="mb-0 ps-3">
+                                    @foreach($m['utilities_spenders'] as $spender => $amount)
+                                        <li>{{ $spender == 1 ? 'Riaz' : 'Tonni' }} : {{ number_format($amount, 2) }} €</li>
+                                    @endforeach
+                                </ul>
                             @endif
                         </div>
                     </div>

@@ -149,23 +149,56 @@ class AccountController extends Controller
     {
         $year = now()->year;
 
-        $rows = Account::selectRaw('MONTH(date) as month, spender, SUM(amount) as total')
+        // --- Accounts grouped ---
+        $accountsRows = Account::selectRaw('MONTH(date) as month, spender, SUM(amount) as total')
             ->whereYear('date', $year)
             ->groupBy(DB::raw('MONTH(date)'), 'spender')
-            ->orderBy(DB::raw('MONTH(date)'))
             ->get();
 
-        $monthlyTotals = collect(range(1, 12))->map(function ($m) use ($rows, $year) {
-
-            $monthRows = $rows->where('month', $m);
+        $monthlyTotals = collect(range(1, 12))->map(function ($m) use ($accountsRows, $year) {
+            $monthRows = $accountsRows->where('month', $m);
 
             return [
-                'month_num'   => $m,
-                'month_name'  => Carbon::createFromDate($year, $m, 1)->format('F'),
+                'month_num'  => $m,
+                'month_name' => Carbon::createFromDate($year, $m, 1)->format('F'),
+                'total'      => (float) $monthRows->sum('total'),
+                'spenders'   => $monthRows->pluck('total', 'spender')->toArray(),
+            ];
+        })->keyBy('month_num');
 
-                'total'       => (float) $monthRows->sum('total'),
+        // --- Utilities grouped ---
+        $utilityRows = Utility::selectRaw('MONTH(date) as month, spender, SUM(amount) as total')
+            ->whereYear('date', $year)
+            ->groupBy(DB::raw('MONTH(date)'), 'spender')
+            ->get();
 
-                'spenders'    => $monthRows->pluck('total', 'spender')->toArray(),
+        $monthlyTotalUtilities = collect(range(1, 12))->map(function ($m) use ($utilityRows, $year) {
+            $monthRows = $utilityRows->where('month', $m);
+
+            return [
+                'month_num'  => $m,
+                'month_name' => Carbon::createFromDate($year, $m, 1)->format('F'),
+                'total'      => (float) $monthRows->sum('total'),
+                'spenders'   => $monthRows->pluck('total', 'spender')->toArray(),
+            ];
+        })->keyBy('month_num');
+
+        // --- Merge into one structure per month ---
+        $months = collect(range(1, 12))->map(function ($m) use ($monthlyTotals, $monthlyTotalUtilities, $year) {
+            $acc = $monthlyTotals->get($m, ['total' => 0, 'spenders' => []]);
+            $uti = $monthlyTotalUtilities->get($m, ['total' => 0, 'spenders' => []]);
+
+            return [
+                'month_num'  => $m,
+                'month_name' => Carbon::createFromDate($year, $m, 1)->format('F'),
+
+                'accounts_total'  => (float) ($acc['total'] ?? 0),
+                'utilities_total' => (float) ($uti['total'] ?? 0),
+
+                'accounts_spenders'  => $acc['spenders'] ?? [],
+                'utilities_spenders' => $uti['spenders'] ?? [],
+
+                'grand_total' => (float) ($acc['total'] ?? 0) + (float) ($uti['total'] ?? 0),
             ];
         });
 
@@ -174,7 +207,7 @@ class AccountController extends Controller
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
         $daysLeft = $daysInMonth - $day;
 
-        return view('history', compact('monthlyTotals', 'daysLeft', 'year'));
+        return view('history', compact('months', 'daysLeft', 'year'));
     }
 
     public function spenderDetails($id){
