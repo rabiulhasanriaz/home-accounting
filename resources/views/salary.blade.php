@@ -112,7 +112,13 @@
                 @endphp
 
                 <tr>
-                    <td>{{ $salary->name = 1 ? 'Riaz' : 'Tonni' }}</td>
+                    <td>
+                        @if($salary->user == 1)
+                            Riaz
+                        @else
+                            Tonni
+                        @endif
+                    </td>
                     <td>{{ $salary->company }}</td>
                     <td>{{ $salary->date }}</td>
                     <td>{{ $salary->created_at ?? '-' }}</td>
@@ -137,6 +143,7 @@
                 <th colspan="3" style="text-align: right; ">Riaz:  {{ number_format($riazTotal,2) }}€</th>
                 <th style="text-align: right; ">Tonni: {{ number_format($tonniTotal,2) }}€</th>
                 <th style="text-align: right">Total:  {{ number_format($subtotal,2) }}€</th>
+                <th></th>
             </tr>
             </tfoot>
         </table>

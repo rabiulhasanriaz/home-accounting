@@ -21,3 +21,7 @@ Route::get('/spender-details/{id}',[AccountController::class,'spenderDetails'])-
 
 Route::get('/utility',[AccountController::class,'utility'])->name('utility');
 Route::post('/utility-store',[AccountController::class,'utilityStore'])->name('utilityStore');
+
+Route::get('/history/pdf', [AccountController::class, 'downloadHistoryPdf']);
+Route::get('/history/{year}/{month}/pdf', [AccountController::class, 'downloadMonthlyPdf'])
+    ->where(['year' => '\d{4}', 'month' => '\d{1,2}']);

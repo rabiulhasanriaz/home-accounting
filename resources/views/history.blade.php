@@ -1,5 +1,8 @@
 @extends('layout.master')
 @section('content')
+    <a href="{{ url('/history/pdf') }}" class="btn btn-dark mb-3">
+        Yearly Report Download
+    </a>
     <div class="box-body bg-white">
         <div class="row">
             @foreach($months as $m)
@@ -74,6 +77,10 @@
                             @endif
 
                         </div>
+                        <a class="btn btn-light btn-sm mt-2"
+                           href="{{ url('/history/'.$year.'/'.$m['month_num'].'/pdf') }}">
+                            {{ $m['month_name'] }} Report Download
+                        </a>
                     </div>
                 </div>
             @endforeach

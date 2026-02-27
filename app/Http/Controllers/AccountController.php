@@ -10,6 +10,7 @@ use App\Models\Utility;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AccountController extends Controller
 {
@@ -322,5 +323,190 @@ class AccountController extends Controller
         $data->remarks = $request->remarks;
         $data->save();
         return redirect()->back()->with('success','Utility Added Successfully');
+    }
+
+    public function downloadHistoryPdf()
+    {
+        $year = now()->year;
+
+        // --- Accounts grouped ---
+        $accountsRows = Account::selectRaw('MONTH(date) as month, spender, SUM(amount) as total')
+            ->whereYear('date', $year)
+            ->groupBy(DB::raw('MONTH(date)'), 'spender')
+            ->get();
+
+        $monthlyTotals = collect(range(1, 12))->map(function ($m) use ($accountsRows, $year) {
+            $monthRows = $accountsRows->where('month', $m);
+
+            return [
+                'month_num'  => $m,
+                'month_name' => Carbon::createFromDate($year, $m, 1)->format('F'),
+                'total'      => (float) $monthRows->sum('total'),
+                'spenders'   => $monthRows->pluck('total', 'spender')->toArray(),
+            ];
+        })->keyBy('month_num');
+
+        // --- Utilities grouped ---
+        $utilityRows = Utility::selectRaw('MONTH(date) as month, spender, SUM(amount) as total')
+            ->whereYear('date', $year)
+            ->groupBy(DB::raw('MONTH(date)'), 'spender')
+            ->get();
+
+        $monthlyTotalUtilities = collect(range(1, 12))->map(function ($m) use ($utilityRows, $year) {
+            $monthRows = $utilityRows->where('month', $m);
+
+            return [
+                'month_num'  => $m,
+                'month_name' => Carbon::createFromDate($year, $m, 1)->format('F'),
+                'total'      => (float) $monthRows->sum('total'),
+                'spenders'   => $monthRows->pluck('total', 'spender')->toArray(),
+            ];
+        })->keyBy('month_num');
+
+        // --- Salary grouped ---
+        $salaryRows = Salary::selectRaw('MONTH(date) as month, user, SUM(amount) as total')
+            ->whereYear('date', $year)
+            ->groupBy(DB::raw('MONTH(date)'), 'user')
+            ->get();
+
+        $monthlySalaries = collect(range(1, 12))->map(function ($m) use ($salaryRows, $year) {
+            $monthRows = $salaryRows->where('month', $m);
+
+            return [
+                'total' => (float) $monthRows->sum('total'),
+                'users' => $monthRows->pluck('total', 'user')->toArray(),
+            ];
+        })->keyBy(fn($v, $k) => $k + 1); // not needed, but safe
+
+        // --- Installments grouped ---
+        $installmentsRows = Installment::selectRaw('MONTH(date) as month, paidBy, SUM(amount) as total')
+            ->whereYear('date', $year)
+            ->groupBy(DB::raw('MONTH(date)'), 'paidBy')
+            ->get();
+
+        $monthlyInstallments = collect(range(1, 12))->map(function ($m) use ($installmentsRows) {
+            $monthRows = $installmentsRows->where('month', $m);
+
+            return [
+                'total'   => (float) $monthRows->sum('total'),
+                'paid_by' => $monthRows->pluck('total', 'paidBy')->toArray(),
+            ];
+        })->keyBy(fn($v, $k) => $k + 1);
+
+        // --- Merge into one structure per month ---
+        $months = collect(range(1, 12))->map(function ($m) use (
+            $monthlyTotals,
+            $monthlyTotalUtilities,
+            $monthlySalaries,
+            $monthlyInstallments,
+            $year
+        ) {
+            $acc = $monthlyTotals->get($m, ['total' => 0, 'spenders' => []]);
+            $uti = $monthlyTotalUtilities->get($m, ['total' => 0, 'spenders' => []]);
+
+            $sal = $monthlySalaries->get($m, ['total' => 0, 'users' => []]);
+            $ins = $monthlyInstallments->get($m, ['total' => 0, 'paid_by' => []]);
+
+            $accountsTotal     = (float) ($acc['total'] ?? 0);
+            $utilitiesTotal    = (float) ($uti['total'] ?? 0);
+            $installmentsTotal = (float) ($ins['total'] ?? 0);
+
+            $grand  = $accountsTotal + $utilitiesTotal + $installmentsTotal;
+            $salary = (float) ($sal['total'] ?? 0);
+
+            return [
+                'month_num'  => $m,
+                'month_name' => Carbon::createFromDate($year, $m, 1)->format('F'),
+
+                'accounts_total'     => $accountsTotal,
+                'utilities_total'    => $utilitiesTotal,
+                'installments_total' => $installmentsTotal,
+                'grand_total'        => $grand,
+
+                'accounts_spenders'     => $acc['spenders'] ?? [],
+                'utilities_spenders'    => $uti['spenders'] ?? [],
+                'installments_paid_by'  => $ins['paid_by'] ?? [],
+
+                'salary_total' => $salary,
+                'salary_users' => $sal['users'] ?? [],
+
+                'difference' => $salary - $grand,
+            ];
+        });
+
+        $pdf = Pdf::loadView('downloadPdf', compact('months', 'year'));
+
+        return $pdf->download("monthly_history_$year.pdf");
+    }
+
+    public function downloadMonthlyPdf($year, $month)
+    {
+        $month = (int) $month;
+
+        // ACCOUNTS (only this month)
+        $accountsRows = Account::selectRaw('spender, SUM(amount) as total')
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->groupBy('spender')
+            ->get();
+
+        $accounts_total = (float) $accountsRows->sum('total');
+        $accounts_spenders = $accountsRows->pluck('total', 'spender')->toArray();
+
+        // UTILITIES (only this month)
+        $utilityRows = Utility::selectRaw('spender, SUM(amount) as total')
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->groupBy('spender')
+            ->get();
+
+        $utilities_total = (float) $utilityRows->sum('total');
+        $utilities_spenders = $utilityRows->pluck('total', 'spender')->toArray();
+
+        // INSTALLMENTS (only this month)
+        $installmentRows = Installment::selectRaw('paidBy, SUM(amount) as total')
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->groupBy('paidBy')
+            ->get();
+
+        $installments_total = (float) $installmentRows->sum('total');
+        $installments_paid_by = $installmentRows->pluck('total', 'paidBy')->toArray();
+
+        // SALARY (only this month)
+        $salaryRows = Salary::selectRaw('user, SUM(amount) as total')
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->groupBy('user')
+            ->get();
+
+        $salary_total = (float) $salaryRows->sum('total');
+        $salary_users = $salaryRows->pluck('total', 'user')->toArray();
+
+        // TOTALS
+        $grand_total = $accounts_total + $utilities_total + $installments_total;
+        $difference = $salary_total - $grand_total;
+
+        $month_name = Carbon::createFromDate($year, $month, 1)->format('F');
+
+        $data = compact(
+            'year',
+            'month',
+            'month_name',
+            'accounts_total',
+            'utilities_total',
+            'installments_total',
+            'grand_total',
+            'salary_total',
+            'difference',
+            'accounts_spenders',
+            'utilities_spenders',
+            'installments_paid_by',
+            'salary_users'
+        );
+
+        $pdf = Pdf::loadView('pdf-monthly', $data);
+
+        return $pdf->download("monthly_report_{$year}_{$month}.pdf");
     }
 }
