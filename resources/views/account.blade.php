@@ -18,6 +18,7 @@
                 <option value="0">Select User</option>
                 <option value="1">Riaz</option>
                 <option value="2">Tonni</option>
+                <option value="3">Travel</option>
             </select>
         </div>
         <div class="col">
@@ -26,6 +27,7 @@
                 <option value="1">Self</option>
                 <option value="2">Family Maintenance</option>
                 <option value="3">Other</option>
+                <option value="4">Travel</option>
             </select>
         </div>
         <div class="col">
@@ -59,20 +61,24 @@
         </thead>
         <tbody>
         @php $total=0; @endphp
-        @php $riaz=0; $tonni=0; @endphp
+        @php $riaz=0; $tonni=0; $travel=0;@endphp
         @foreach($data as $d)
             @php $total += $d->amount @endphp
             @if($d->spender == 1)
                 @php $riaz += $d->amount @endphp
-            @else
+            @elseif($d->spender == 2)
                 @php $tonni += $d->amount @endphp
+            @else
+                @php $travel += $d->amount @endphp
             @endif
             <tr>
                 <td>
                     @if($d->spender == 1)
                         Riaz
-                    @else
+                    @elseif($d->spender == 2)
                         Tonni
+                    @else
+                        Travel
                     @endif
                 </td>
                 <td>
@@ -80,8 +86,10 @@
                         Self
                     @elseif($d->purpose == 2)
                         Family Maintenance
-                    @else
+                    @elseif($d->purpose == 3)
                         Other
+                    @else
+                        Travel
                     @endif
                 <td>{{ $d->date }}</td>
                 <td>{{ $d->remarks }}</td>
@@ -103,8 +111,9 @@
         </tbody>
         <tfoot>
         <tr>
-            <th colspan="4" style="text-align: right; color: {{ $riaz > $tonni ? 'red' : 'green' }}">Riaz: {{ number_format($riaz,2) }} €</th>
+            <th colspan="3" style="text-align: right; color: {{ $riaz > $tonni ? 'red' : 'green' }}">Riaz: {{ number_format($riaz,2) }} €</th>
             <th style="text-align: right; color: {{ $riaz < $tonni ? 'red' : 'green' }}">Tonni: {{ number_format($tonni,2) }} €</th>
+            <th style="text-align: right; color: {{ $riaz < $tonni ? 'red' : 'green' }}">Travel: {{ number_format($travel,2) }} €</th>
             <th style="text-align: right">Total: {{ number_format($total,2)  }} €</th>
             <th></th>
         </tr>
