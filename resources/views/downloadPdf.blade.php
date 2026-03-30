@@ -30,7 +30,7 @@
     @if(!empty($m['accounts_spenders']))
     <ul>
         @foreach($m['accounts_spenders'] as $spender => $amount)
-        <li>{{ $spender == 1 ? 'Riaz' : 'Tonni' }} : {{ number_format($amount,2) }} €</li>
+        <li>{{ $spender == 1 ? 'Riaz' : ($spender == 2 ? 'Tonni' : 'Travel') }} : {{ number_format($amount, 2) }} €</li>
         @endforeach
     </ul>
     @endif
